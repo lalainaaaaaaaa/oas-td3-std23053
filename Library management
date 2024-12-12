@@ -1,0 +1,153 @@
+openapi: 3.0.3
+info:
+  title: Library Management API
+  version: 1.2.0  
+  description: API for managing books and authors in a library.
+servers:
+  - url: http://localhost:8080/api
+components:
+  parameters:
+    queryPagination:
+      name: page
+      in: query
+      description: The page number to retrieve (default is 1)
+      required: false
+      schema:
+        type: integer
+        default: 1
+
+    pathPagination:
+      name: pageSize
+      in: query
+      description: The number of items per page (default is 50)
+      required: false
+      schema:
+        type: integer
+        default: 50
+
+    statusResponse:
+      type: object
+      properties:
+        status:
+          type: object
+          properties:
+            code:
+              type: integer
+            message:
+              type: string
+        body:
+          type: object
+
+    errorResponse:
+      allOf:
+        - $ref: '#/components/schemas/statusResponse'
+        - properties:
+            body:
+              type: object
+              additionalProperties: true
+
+    successResponse200:
+      allOf:
+        - $ref: '#/components/schemas/statusResponse'
+        - properties:
+            body:
+              type: object
+              additionalProperties: true
+paths:
+  /books:
+    get:
+      summary: Retrieve a list of books with pagination
+      parameters:
+        - $ref: '#/components/parameters/queryPagination'
+        - $ref: '#/components/parameters/pathPagination'
+      responses:
+        '200':
+          description: A list of books retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/successResponse200'
+
+    post:
+      summary: Import a list of books from Excel or JSON files
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - type: array
+                  items:
+                    $ref: '#/components/schemas/ImportBook'
+                - type: string
+      responses:
+        '200':
+          description: A list of books imported successfully.
+          content:
+            application/json:
+              schema:
+                type: array 
+                items:
+                  $ref: '#/components/schemas/Book'
+  /authors:
+    get:
+      summary: Retrieve a list of authors with pagination
+      parameters:
+        - $ref: '#/components/parameters/queryPagination'
+        - $ref: '#/components/parameters/pathPagination'
+      responses:
+        '200':
+          description: A list of authors retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/successResponse200'
+
+    post:
+      summary: Import a list of authors from Excel or JSON files
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - type: array 
+                  items:
+                    $ref: '#/components/schemas/ImportAuthor'
+                - type: string 
+      responses:
+        '200':
+          description: A list of authors imported successfully.
+          content:
+            application/json:
+              schema:
+                type: array 
+                items:
+                  $ref: '#/components/schemas/Author'
+components:
+  schemas:
+
+    ImportAuthor:
+      type: object 
+      properties:
+        authorName:
+          type:string 
+        sex :
+           type:string 
+           enum:[M,F]
+
+    ImportBook:
+      type: object 
+      properties:
+        bookName:
+          type:string 
+        authorId :
+           type:string 
+        pageNumbers :
+           type:number 
+       topic :
+           type:string 
+           enum:[ROMANCE, COMEDY, OTHER]
+       releaseDate :
+           type:string 
+           format : date 
